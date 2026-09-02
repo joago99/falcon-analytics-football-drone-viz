@@ -1,0 +1,45 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Modelos grandes (pesos YOLO >50MB)
+models/
+*.pt
+!models/football_weights/.gitkeep
+
+# Videos y outputs pesados (>50MB)
+videos/
+outputs/
+highlights/
+*annotated*.mp4
+*.mp4
+
+# Calibración
+calib/calib.json
+calib/autocalib_check.png
+outputs/penalty_frame.jpg
+outputs/detect_demo.*
+outputs/calib_frame.jpg
+outputs/graphics_test.*
+outputs/annotated_frame.*
+
+# Cachés Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs de ejecución
+*.log
+pipeline_*.log
+
+# Submódulos de referencia (no versionar)
+roboflow-sports/

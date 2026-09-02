@@ -1,0 +1,12 @@
+# Este directorio contiene los modelos YOLO entrenados.
+# Descargar los pesos desde:
+# https://github.com/Darkmyter/Football-Players-Tracking
+#
+# Colocar aquí:
+#   - yolov8m-640-football-players.pt   (jugadores, rápido)
+#   - yolov8l-640-football-players.pt   (jugadores, preciso)
+#   - yolov5x-1280-football-players.pt   (pelota)
+#   - yolov5m-1280-football-players.pt   (pelota)
+#
+# NOTA: Los modelos YOLOv5 (.pt) no son compatibles con Ultralytics YOLOv8.
+# Usar yolov8m-640 como BALL_MODEL en su defecto, o instalar yolov5 original.

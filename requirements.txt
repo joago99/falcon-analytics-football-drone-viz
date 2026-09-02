@@ -1,0 +1,13 @@
+# PyTorch con CUDA 12.x para RTX 4070
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.4.1
+torchvision==0.19.1
+
+# Detección / tracking / análisis
+ultralytics>=8.3.0
+opencv-python>=4.10.0
+numpy
+scipy
+supervision>=0.24.0
+scikit-learn
+tqdm
