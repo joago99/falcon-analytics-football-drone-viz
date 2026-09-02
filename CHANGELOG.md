@@ -2,6 +2,20 @@
 
 All notable changes to Falcon Analytics — Football Drone Viz.
 
+## [v0.2.1] — 2026-09-03
+
+### Fixed
+- **BallTracker reescrito**: reemplazado crop+upscale (que no detectaba pelota a 640px)
+  por full-frame a 1280px con yolov8m. La pelota no se detecta a 640px (0%) pero
+  sí a 1280px (conf ~0.17–0.44). El crop+upscale borronea detalle insuficiente.
+- **BALL_MODEL**: cambiado de `yolov5m-1280` (incompatible con YOLOv8, lanzaba
+  TypeError) a `yolov8m-640` (compatible).
+- **BALL_IMGSZ**: 640 → 1280 (resolución requerida para detección de pelota).
+- **BALL_CONF**: 0.20 → 0.15 (ajuste para captar detecciones débiles de pelota).
+
+### Added
+- Documentación del workaround YOLOv5→YOLOv8 en README.md.
+
 ## [v0.2.0] — 2026-09-03
 
 ### Changed

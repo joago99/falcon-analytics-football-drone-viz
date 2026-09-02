@@ -27,5 +27,12 @@ python run_calibrate.py videos/partido.mp4  # calibrar cancha/arcos → calib/ca
 ## Modelos
 
 Football-Players-Tracking (Darkmyter/Roboflow) en `models/football_weights/`:
-- yolov8m-640 (jugadores, rápido)
-- yolov5m-1280 (pelota, doble pase)
+- `yolov8m-640-football-players.pt` — jugadores (rápido, YOLOv8 compatible)
+- `yolov8l-640-football-players.pt` — jugadores (preciso)
+- `yolov5m-1280-football-players.pt` — pelota (YOLOv5 legacy, NO compatible con YOLOv8)
+- `yolov5x-1280-football-players.pt` — pelota (YOLOv5 legacy)
+
+**IMPORTANTE sobre la pelota:** el modelo `yolov5m-1280` (formato YOLOv5) no carga
+en Ultralytics YOLOv8 (`TypeError: NOT forwards compatible`). El `BallTracker`
+usa `yolov8m-640` corrido a `imgsz=1280` como workaround: la pelota se detecta
+bien a 1280px (conf ~0.17–0.44 en tests) pero NO a 640px (0%).

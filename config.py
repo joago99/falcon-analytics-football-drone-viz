@@ -38,11 +38,14 @@ IOU_THRESHOLD = 0.50
 
 # ---- Doble pase: pelota (objeto pequeño, necesita resolución alta) ----
 # La pelota desde la altura del dron NO se detecta a 640px (0%).
-# A 1280px con yolov8l sí (67%). Corremos la pelota a 1280px cada N frames
-# y entre muestras propagamos la última posición con velocidad.
+# A 1280px con yolov8m sí (~0.44 conf en tests). Corremos el modelo de pelota
+# (yolov8m-640, compatible con YOLOv8) a imgsz=1280 sobre todo el frame cada N
+# frames y entre muestras propagamos la última posición con velocidad.
+# NOTA: el modelo yolov5m-1280 NO es compatible con Ultralytics YOLOv8
+# (error: "NOT forwards compatible"). Se reemplazó por yolov8m-640 a 1280px.
 BALL_MODEL = "models/football_weights/yolov8m-640-football-players.pt"
-BALL_IMGSZ = 640
-BALL_CONF = 0.20
+BALL_IMGSZ = 1280
+BALL_CONF = 0.15
 BALL_SAMPLE_EVERY = 15   # cada N frames se corre el modelo de pelota a 1280px
 BALL_STALE_FRAMES = 30   # frames sin detección tras los cuales se suelta la pelota
 # Propagación "corta" tras detección real que SÍ alimenta eventos (jugada en curso)
