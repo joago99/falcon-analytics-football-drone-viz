@@ -2,6 +2,27 @@
 
 All notable changes to Falcon Analytics — Football Drone Viz.
 
+## [v0.3.0] — 2026-09-15
+
+### Added (mejoras de docs/analisis-tactico-cv.md)
+- **Export CSV de trayectorias** (`src/trajectory.py`): posiciones métricas
+  (frame, id_jugador, equipo, campo_x_metros, campo_y_metros) por jugador
+  activo -> `outputs/<video>_trayectorias.csv`. Puente hacia gemelo digital.
+- **Gemelo táctico en Blender** (`tools/blender_tactical_twin.py`): importa el
+  CSV y genera el terreno FIFA 105x68 + cilindros por jugador + keyframes de
+  traslación (fase 3 del documento de referencia).
+- **Autocalibración por keypoints** (`src/autocalib_keypoints.py`): homografía
+  dinámica por frame usando el modelo Roboflow football-field-detection-f07vi
+  (RANSAC sobre 32 marcas reglamentarias). Requiere ROBOFLOW_API_KEY; sin key
+  usa la calibración manual existente.
+- **Video limpio estilo FIFA**: eliminados overlay de cancha (líneas blancas,
+  arcos amarillos) y estelas cian del video anotado. Jugadores/árbitros se
+  enmarcan en círculos rellenos del color del equipo con borde blanco y track
+  ID centrado (verde=A, rojo=B, cian=REF, gris=staff).
+
+### Fixed
+- BallTracker: full-frame a 1280px (detección real de pelota ~0.44 conf).
+
 ## [v0.2.1] — 2026-09-03
 
 ### Fixed

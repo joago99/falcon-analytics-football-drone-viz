@@ -39,6 +39,7 @@ from src.highlights import generate_highlights
 from src.zones import PitchZones
 from src.graphics import VideoGraphics
 from src.motion import MotionCompensator
+from src.trajectory import TrajectoryRecorder
 
 
 def resolve_input(input_arg: str) -> str:
@@ -123,6 +124,9 @@ def main():
     stats = StatsAccumulator(cal)
     zones = PitchZones(cal)
     graphics = VideoGraphics(cal, zones) if not args.no_graphics else None
+    # Registro de trayectorias métricas (CSV para gemelo digital / Blender)
+    traj = TrajectoryRecorder(pitch_length=cal.pitch_length,
+                              pitch_width=cal.pitch_width, normalized=False)
 
     # ---- Numeración correlativa: cada video anotado lleva un sufijo secuencial
     # por día: annotated_vYYYYMMDD-v001.mp4. Incrementa si el archivo existe.
@@ -244,6 +248,11 @@ def main():
             # stats: igual, sin REF/OUT; posesión con pelota real/prop_short
             stats.update(players_active, team_map, ball_for_events, t_sec, dt_real)
 
+            # trayectorias métricas (solo jugadores activos, sin árbitro/staff)
+            for p in players_active:
+                team = team_map.get(p["track_id"], "A")
+                traj.record(frame_idx, p["track_id"], team, p["pos_m"])
+
             # anotación (muestra TODOS: jugadores, REF, OUT y la pelota)
             if out_video:
                 if graphics is not None:
@@ -294,6 +303,11 @@ def main():
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False, default=_json_default)
     print(f"\nInforme guardado en: {report_path}")
+
+    # exportar trayectorias métricas (CSV -> Blender / analítica táctica)
+    traj_path = OUTPUTS_DIR / f"{stem}_trayectorias.csv"
+    traj.export(traj_path)
+    print(f"Trayectorias ({traj.size} registros) guardadas en: {traj_path}")
     print("\n=== RESUMEN ===")
     print(f"Eventos detectados: {len(events)}")
     for ev in events:
@@ -330,18 +344,26 @@ def dedup_events(events, window_s: float = 5.0):
 
 
 def _annotate(frame, tracked, team_map, ball_m):
-    """Dibuja bboxes, IDs y equipos sobre el frame (solo para el video anotado).
+    """Dibuja círculos estilo FIFA sobre el frame (solo para el video anotado).
     Colores: A=verde, B=rojo, REF=cian, OUT=gris (entrenadores/suplentes),
     UNK=magenta (sin equipo confiable)."""
     for o in tracked:
         x1, y1, x2, y2 = map(int, o.bbox)
+        cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
         team = team_map.get(o.track_id, "?")
-        color = {"A": (0, 255, 0), "B": (0, 0, 255),
-                 "REF": (255, 255, 0), "OUT": (128, 128, 128),
+        color = {"A": (60, 200, 60), "B": (60, 60, 240),
+                 "REF": (0, 220, 220), "OUT": (160, 160, 160),
                  "UNK": (255, 0, 255)}.get(team, (255, 255, 255))
-        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-        cv2.putText(frame, f"{o.track_id} {team}", (x1, y1 - 6),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+        r = int(max(x2 - x1, y2 - y1) / 2) + 6
+        cv2.circle(frame, (cx, cy), r, color, -1)
+        cv2.circle(frame, (cx, cy), r, (255, 255, 255), 2)
+        label = f"{o.track_id} {team}"
+        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+        tx, ty = cx - tw // 2, cy + th // 2
+        cv2.putText(frame, label, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                    (0, 0, 0), 3, cv2.LINE_AA)
+        cv2.putText(frame, label, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                    (255, 255, 255), 1, cv2.LINE_AA)
 
 
 if __name__ == "__main__":

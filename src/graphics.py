@@ -92,10 +92,8 @@ class VideoGraphics:
             y += 45
 
     def draw(self, frame, tracked, team_map, t_sec, ball_px=None):
-        self.update(tracked, team_map, t_sec)
-        self.draw_pitch(frame)
-        self.draw_trails(frame)
-        self._draw_boxes(frame, tracked, team_map)
+        # Sin overlay de cancha ni trails: solo jugadores/árbitros/balón
+        self._draw_players(frame, tracked, team_map)
         self._draw_ball(frame, ball_px)
         self.draw_events(frame, t_sec)
 
@@ -108,16 +106,31 @@ class VideoGraphics:
         cv2.line(frame, (x - 18, y), (x + 18, y), (0, 255, 255), 1)
         cv2.line(frame, (x, y - 18), (x, y + 18), (0, 255, 255), 1)
 
-    def _draw_boxes(self, frame, tracked, team_map):
-        """Dibuja bboxes + etiquetas de equipo sobre cada jugador."""
+    def _draw_players(self, frame, tracked, team_map):
+        """Dibuja a los jugadores con círculos estilo FIFA 2025 (sin bboxes).
+
+        Cada detección se enmarca en un círculo relleno del color de su equipo,
+        con borde blanco y el track ID centrado dentro.
+        Colores: A=verde, B=rojo, REF=cian (árbitro), OUT=gris (staff),
+        UNK=magenta (sin equipo confiable).
+        """
         for o in tracked:
             x1, y1, x2, y2 = map(int, o.bbox)
+            cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
             team = team_map.get(o.track_id, "?")
-            color = {"A": (0, 200, 0), "B": (0, 0, 220),
-                     "REF": (220, 220, 0), "OUT": (128, 128, 128)}.get(team, (255, 255, 255))
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-            label = f"{o.track_id} {team}"
-            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-            cv2.rectangle(frame, (x1, y1 - th - 8), (x1 + tw + 6, y1 - 4), color, -1)
-            cv2.putText(frame, label, (x1 + 3, y1 - 6),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, C_BLACK, 1)
+            color = {"A": (60, 200, 60), "B": (60, 60, 240),
+                     "REF": (0, 220, 220), "OUT": (160, 160, 160),
+                     "UNK": (255, 0, 255)}.get(team, (255, 255, 255))
+            # radio proporcional al tamaño del jugador (vista cenital)
+            r = int(max(x2 - x1, y2 - y1) / 2) + 6
+            # círculo relleno + borde blanco
+            cv2.circle(frame, (cx, cy), r, color, -1)
+            cv2.circle(frame, (cx, cy), r, (255, 255, 255), 2)
+            # ID centrado dentro del círculo (negro con contorno blanco)
+            label = str(o.track_id)
+            (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+            tx, ty = cx - tw // 2, cy + th // 2
+            cv2.putText(frame, label, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                        (0, 0, 0), 3, cv2.LINE_AA)
+            cv2.putText(frame, label, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                        (255, 255, 255), 1, cv2.LINE_AA)

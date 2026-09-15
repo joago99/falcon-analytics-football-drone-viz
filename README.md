@@ -12,9 +12,23 @@ python run_pipeline.py videos/partido.mp4 --imgsz 576 --teams siglip
 Etapas: detección → tracking (BoT-SORT) → clasificación equipos (SigLIP/HVS) → homografía dinámica (ECC) → eventos → estadísticas → highlights.
 
 Outputs:
-- `outputs/<video>_annotated_vYYYYMMDD-vNNN.mp4` — video anotado (numeración correlativa)
+- `outputs/<video>_annotated_vYYYYMMDD-vNNN.mp4` — video anotado (numeración correlativa, círculos estilo FIFA)
 - `outputs/<video>_report.json` — eventos + stats + highlights
+- `outputs/<video>_trayectorias.csv` — posiciones métricas (frame, id, equipo, x_m, y_m)
 - `highlights/*.mp4` — clips de cada tiro/gol
+
+## Gemelo digital táctico (Blender)
+
+El CSV de trayectorias se convierte en escena 3D animada (terreno FIFA + cilindros
+por jugador + keyframes) ejecutando `tools/blender_tactical_twin.py` dentro de
+Blender (editor de texto). Ver el docstring del script para instrucciones.
+
+## Autocalibración por keypoints (opcional)
+
+El pipeline usa calibración manual (`calib/calib.json`). Para autocalibración
+dinámica por frame con el modelo Roboflow football-field-detection-f07vi
+(`src/autocalib_keypoints.py`), definir la variable de entorno `ROBOFLOW_API_KEY`
+antes de correr. Sin key, se usa la calibración manual existente.
 
 ## Setup
 
