@@ -243,7 +243,16 @@ def main():
                     label = {"GOAL": "GOOOL!", "SHOT": "TIRO",
                              "PASS": "PASE", "CORNER": "CORNELIO",
                              "BALL_OUT": "FUERA"}.get(ev["type"], ev["type"])
-                    graphics.push_event(f"{label} @ {t_sec:.0f}s", t_sec)
+                    # dedup EN VIVO: no mostrar BALL_OUT si hay un evento más
+                    # importante en la misma ventana (ej. SHOT+1s despues de
+                    # BALL_OUT espurio -> solo se ve "TIRO")
+                    ev_prio = {"GOAL": 0, "SHOT": 1, "CORNER": 2,
+                               "PASS": 3, "BALL_OUT": 4}.get(ev["type"], 9)
+                    recent_prio = graphics.recent_events[-1][2] if graphics.recent_events else 9
+                    if ev["type"] == "BALL_OUT" and recent_prio <= 3:
+                        continue
+                    graphics.push_event(f"{label} @ {t_sec:.0f}s", t_sec,
+                                        priority=ev_prio)
 
             # stats: igual, sin REF/OUT; posesión con pelota real/prop_short
             stats.update(players_active, team_map, ball_for_events, t_sec, dt_real)

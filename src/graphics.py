@@ -76,15 +76,23 @@ class VideoGraphics:
             pts = np.array(tr, dtype=np.int32).reshape(-1, 1, 2)
             cv2.polylines(frame, [pts], False, C_CYAN, 2)
 
-    def push_event(self, text, t_sec):
-        self.recent_events.append((t_sec, text))
+    def push_event(self, text, t_sec, priority: int = 9):
+        """Registra un evento en pantalla. Los de mayor prioridad (menor número)
+        reemplazan a los de menor prioridad de la misma ventana temporal."""
+        self.recent_events.append((t_sec, text, priority))
+        # si el último evento es más importante que el anterior, reemplazarlo
+        if len(self.recent_events) >= 2:
+            last, prev = self.recent_events[-1], self.recent_events[-2]
+            if abs(last[0] - prev[0]) < 3.0 and last[2] < prev[2]:
+                self.recent_events[-2] = last
+                self.recent_events.pop()
         if len(self.recent_events) > 5:
             self.recent_events.pop(0)
 
     def draw_events(self, frame, t_sec):
         """Dibuja texto de eventos recientes (dentro de 3s) en pantalla."""
         y = 60
-        for ev_t, text in self.recent_events:
+        for ev_t, text, _prio in self.recent_events:
             if t_sec - ev_t > 3.0:
                 continue
             cv2.putText(frame, text, (30, y), cv2.FONT_HERSHEY_SIMPLEX,
